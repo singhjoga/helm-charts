@@ -142,7 +142,9 @@ collectors: {}
 # mysql connection params which build the DATA_SOURCE_NAME env var of the docker container
 mysql:
   db: ""
-  host: "localhost"
+  # blank host will allow multiple targets using /probe endpoint. 
+  # All targets should have the same usrname and password. No DATA_SOURCE_NAME env var is created.
+  host: ""
   param: ""
   pass: "password"
   port: 3306
@@ -154,8 +156,8 @@ mysql:
   existingPasswordSecret:
     name: ""
     key: ""
-
-# cloudsqlproxy https://cloud.google.com/sql/docs/mysql/sql-proxy
+   
+## cloudsqlproxy https://cloud.google.com/sql/docs/mysql/sql-proxy
 cloudsqlproxy:
   enabled: false
   image:

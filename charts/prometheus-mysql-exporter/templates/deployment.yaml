@@ -40,8 +40,9 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ default .Chart.AppVersion .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          {{- if or .Values.config .Values.collectors }}
           args:
+            - "--mysqld.username={{ .Values.mysql.user }}"
+          {{- if or .Values.config .Values.collectors }}
           {{- if .Values.config.logLevel }}
             - "--log.level={{ .Values.config.logLevel }}"
           {{- end}}
@@ -79,8 +80,13 @@ spec:
             - secretRef:
                 name: {{ template "prometheus-mysql-exporter.secret" . }}
           {{- else }}
+          {{- if .Values.mysql.host }} # If host is defined, create DSN
             - name: DATA_SOURCE_NAME
               value: "{{ .Values.mysql.user }}:$(DB_PASSWORD)@{{ if .Values.mysql.protocol }}{{ .Values.mysql.protocol }}{{ end }}({{ .Values.mysql.host }}:{{ .Values.mysql.port }})/{{ if .Values.mysql.db }}{{ .Values.mysql.db }}{{ end }}{{ if .Values.mysql.param }}?{{ .Values.mysql.param }}{{ end }}"
+          {{- else }} # password environment variable along with --mysqld.username argument     
+            - name: MYSQLD_EXPORTER_PASSWORD
+              value: $(DB_PASSWORD)
+          {{- end }}
           {{- end }}
           ports:
             - containerPort: {{ .Values.service.internalPort }}
